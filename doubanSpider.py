@@ -11,7 +11,6 @@ from openpyxl import Workbook
 from importlib import reload
 
 reload(sys)
-sys.setdefaultencoding('utf8')
 
 # Some User Agents
 hds = [{'User-Agent': 'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'}, \
@@ -27,14 +26,15 @@ def book_spider(book_tag):
 
     while (1):
         # url='http://www.douban.com/tag/%E5%B0%8F%E8%AF%B4/book?start=0' # For Test
-        url = 'http://www.douban.com/tag/' + urllib.quote(book_tag) + '/book?start=' + str(page_num * 15)
+        url = 'http://www.douban.com/tag/' + urllib.request.quote(book_tag) + '/book?start=' + str(page_num * 15)
         time.sleep(np.random.rand() * 5)
 
         # Last Version
         try:
             req = urllib.request.Request(url, headers=hds[page_num % len(hds)])
-            source_code = urllib.request.urlopen(req).read()
-            plain_text = str(source_code)
+            html = urllib.request.urlopen(req).read()
+            times = time.localtime(time.time())
+            print("请求url %s : 时间 %d 分钟 %d 秒 " % (url, times.tm_min, times.tm_sec))
         except (urllib.error.HTTPError, urllib.error.URLError) as e:
             print(e)
             continue
@@ -43,11 +43,11 @@ def book_spider(book_tag):
         # source_code = requests.get(url)
         # plain_text = source_code.text
 
-        soup = BeautifulSoup(plain_text)
+        soup = BeautifulSoup(html, "html.parser")
         list_soup = soup.find('div', {'class': 'mod book-list'})
 
         try_times += 1;
-        if list_soup == None and try_times < 200:
+        if list_soup == None and try_times < 5:
             continue
         elif list_soup == None or len(list_soup) <= 1:
             break  # Break when no informatoin got after 200 times requesting
@@ -80,8 +80,7 @@ def book_spider(book_tag):
             book_list.append([title, rating, people_num, author_info, pub_info])
             try_times = 0  # set 0 when got valid information
         page_num += 1
-        print
-        'Downloading Information From Page %d' % page_num
+        print('Downloading Information From Page %d' % page_num)
     return book_list
 
 
@@ -89,11 +88,11 @@ def get_people_num(url):
     # url='http://book.douban.com/subject/6082808/?from=tag_all' # For Test
     try:
         req = urllib.request.Request(url, headers=hds[np.random.randint(0, len(hds))])
-        source_code = urllib.request.urlopen(req).read()
-        plain_text = str(source_code)
+        html = urllib.request.urlopen(req).read()
+        # plain_text = str(source_code)
     except (urllib.error.HTTPError, urllib.error.URLError) as e:
         print(e)
-    soup = BeautifulSoup(plain_text)
+    soup = BeautifulSoup(html, "html.parser")
     people_num = soup.find('div', {'class': 'rating_sum'}).findAll('span')[1].string.strip()
     return people_num
 
@@ -108,10 +107,10 @@ def do_spider(book_tag_lists):
 
 
 def print_book_lists_excel(book_lists, book_tag_lists):
-    wb = Workbook(optimized_write=True)
+    wb = Workbook()
     ws = []
     for i in range(len(book_tag_lists)):
-        ws.append(wb.create_sheet(title=book_tag_lists[i].decode()))  # utf8->unicode
+        ws.append(wb.create_sheet(title=book_tag_lists[i]))  # utf8->unicode
     for i in range(len(book_tag_lists)):
         ws[i].append(['序号', '书名', '评分', '评价人数', '作者', '出版社'])
         count = 1
@@ -120,7 +119,7 @@ def print_book_lists_excel(book_lists, book_tag_lists):
             count += 1
     save_path = 'book_list'
     for i in range(len(book_tag_lists)):
-        save_path += ('-' + book_tag_lists[i].decode())
+        save_path += ('-' + book_tag_lists[i])
     save_path += '.xlsx'
     wb.save(save_path)
 
