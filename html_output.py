@@ -9,7 +9,7 @@ class HtmlOutPut:
         self.datas.append(new_data)
 
     def output_html(self):
-        fout = open('output.html', 'w', encoding='utf8')  # 写入文件 防止中文乱码
+        fout = open('output.html', 'a', encoding='utf8')  # 写入文件 防止中文乱码
         fout.write('<html><meta http-equiv="Content-Type" content="text/html; charset=utf-8" />\n')
         fout.write('<body>\n')
         fout.write('<table>\n')
@@ -18,7 +18,6 @@ class HtmlOutPut:
             fout.write('<td>%s</td>\n' % self.urls[data['url']])
             fout.write('<td>%s</td>\n' % data['title'])
             fout.write('<td>%s</td>\n' % data['date'])
-            fout.write('<td>%s</td>\n' % data['time'])
             fout.write('</tr>\n')
         fout.write('</table>\n')
         fout.write('</body>\n')

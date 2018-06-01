@@ -14,8 +14,8 @@ class HtmlParser:
     def _get_new_urls(self, soup):
         new_urls = set()
         # 匹配 /item/%E8%87%AA%E7%94%B1%E8%BD%AF%E4%BB%B6
-        links = soup.find_all('a', href=re.compile(r"/page/\d+"),class_= 'pagenum')
-        for link in links:
+        links = soup.find('div', class_='page_navi')
+        for link in links.find_all('a'):
             new_url = link["href"]
             # 例如page_url=http://baike.baidu.com/item/Python new_url=/item/史记·2016?fr=navbar
             # 则使用parse.urljoin(page_url,new_url)后 new_full_url = http://baike.baidu.com/item/史记·2016?fr=navbar
@@ -38,7 +38,7 @@ class HtmlParser:
             new_data = {}
             new_data['url'] = 'https://8xda.com/d/'+data.a.get('href').split('/')[4]
             new_data['title'] = data.find(class_='postTitle').text
-            new_data['date'], new_data['time'] = data.div.stripped_strings
+            new_data['date'] = data.div.text
             self.old_origin_url.append(new_data['url'])
             self.new_datas.append(new_data)
 
